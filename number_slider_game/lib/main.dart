@@ -59,8 +59,8 @@ class _NumberSliderGameScreenState extends State<NumberSliderGameScreen> {
   final Random _random = Random();
 
   int _round = 0; // 1..3
-  int? _target; // скрытое число текущего раунда
-  int _sliderValue = 50; // текущее положение ползунка (1..100)
+  int? _target; // hidden number 1..100
+  int _sliderValue = 50; // 1..100
 
   String _statusText =
       'Press "Start round" to begin. You have 3 rounds in total.';
@@ -70,11 +70,9 @@ class _NumberSliderGameScreenState extends State<NumberSliderGameScreen> {
   bool get _gameOver =>
       _round >= 3 && _target == null && _results.length == 3;
 
-  // Запуск раунда / новая игра
   void _startOrNextRound() {
     setState(() {
       if (_gameOver) {
-        // Начинаем игру заново
         _round = 0;
         _results = [];
         _target = null;
@@ -85,7 +83,6 @@ class _NumberSliderGameScreenState extends State<NumberSliderGameScreen> {
       }
 
       if (_target != null) {
-        // Раунд уже идёт — не создаём новое число
         _statusText =
             'Round $_round is in progress. Move the slider and press "Guess".';
         return;
@@ -105,7 +102,6 @@ class _NumberSliderGameScreenState extends State<NumberSliderGameScreen> {
     });
   }
 
-  // Обработка попытки угадать число
   void _makeGuess() {
     if (_target == null) {
       setState(() {
@@ -141,7 +137,7 @@ class _NumberSliderGameScreenState extends State<NumberSliderGameScreen> {
         ..._results,
         _RoundResult(round: _round, target: target, guess: guess, diff: diff),
       ];
-      _target = null; // раунд закончился
+      _target = null;
 
       if (_round >= 3) {
         _statusText = '$feedback ${_buildSummaryText()}';
@@ -152,7 +148,6 @@ class _NumberSliderGameScreenState extends State<NumberSliderGameScreen> {
     });
   }
 
-  // Итог игры после 3 раундов
   String _buildSummaryText() {
     if (_results.isEmpty) {
       return 'Game over.';
@@ -176,7 +171,6 @@ class _NumberSliderGameScreenState extends State<NumberSliderGameScreen> {
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Container(
-          // Градиентный фон в горизонтальной ориентации
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -188,287 +182,303 @@ class _NumberSliderGameScreenState extends State<NumberSliderGameScreen> {
               end: Alignment.bottomRight,
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // --- Заголовок ---
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: cs.primary.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Icon(
-                        Icons.tune_rounded,
-                        color: cs.primary,
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Number Slider Game',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      'Round ${_round.clamp(0, 3)} / 3',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Guess a hidden number from 1 to 100 using the slider.',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.75),
-                    fontSize: 13,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 20,
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // --- Статус игры (озвучивается как liveRegion) ---
-                Semantics(
-                  liveRegion: true,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.06),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _statusText,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // --- Центральная зона со слайдером на всю ширину ---
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 24,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        color: Colors.white.withOpacity(0.05),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.18),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Row(
                         children: [
-                          Text(
-                            'Move the slider, then press "Guess".',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: cs.primary.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Icon(
+                              Icons.tune_rounded,
+                              color: cs.primary,
+                              size: 24,
                             ),
                           ),
-                          const SizedBox(height: 16),
-
-                          // Текущее значение ползунка в процентах + liveRegion
-                          Semantics(
-                            liveRegion: true,
-                            label: 'Slider position in percent',
-                            value: '$_sliderValue percent',
+                          const SizedBox(width: 10),
+                          Expanded(
                             child: Text(
-                              '$_sliderValue%',
+                              'Number Slider Game',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontSize: 40,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
-                                fontFeatures: [
-                                  FontFeature.tabularFigures(),
-                                ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(width: 8),
                           Text(
-                            '1 is the far left, 100 is the far right.',
+                            'Round ${_round.clamp(0, 3)} / 3',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withOpacity(0.8),
                               fontSize: 13,
                             ),
                           ),
-                          const SizedBox(height: 24),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Guess a hidden number from 1 to 100 using the slider.',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.75),
+                          fontSize: 12,
+                        ),
+                      ),
 
-                          // Слайдер на всю ширину
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              trackHeight: 10,
-                              thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 12,
-                              ),
-                              overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 22,
-                              ),
-                            ),
-                            child: Slider(
-                              value: _sliderValue.toDouble(),
-                              min: 1,
-                              max: 100,
-                              divisions: 99,
-                              label: '$_sliderValue%',
-                              semanticFormatterCallback: (double value) {
-                                // То, что услышит TalkBack
-                                return '${value.round()} percent';
-                              },
-                              onChanged: (double value) {
-                                setState(() {
-                                  _sliderValue = value.round();
-                                });
-                              },
+                      const SizedBox(height: 10),
+
+                      // Status (liveRegion)
+                      Semantics(
+                        liveRegion: true,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            _statusText,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              height: 1.4,
+                              color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
-                              Text(
-                                '1',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Slider card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          color: Colors.white.withOpacity(0.05),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.16),
+                            width: 1.1,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Move the slider, then press "Guess".',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Semantics(
+                              liveRegion: true,
+                              label: 'Slider position in percent',
+                              value: '$_sliderValue percent',
+                              child: Text(
+                                '$_sliderValue%',
+                                style: const TextStyle(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  fontFeatures: [
+                                    FontFeature.tabularFigures(),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                '100',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '1 is the far left, 100 is the far right.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 8,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 11,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 20,
                                 ),
                               ),
-                            ],
+                              child: Slider(
+                                value: _sliderValue.toDouble(),
+                                min: 1,
+                                max: 100,
+                                divisions: 99,
+                                label: '$_sliderValue%',
+                                semanticFormatterCallback: (double value) {
+                                  return '${value.round()} percent';
+                                },
+                                onChanged: (double value) {
+                                  setState(() {
+                                    _sliderValue = value.round();
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text(
+                                  '1',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                Text(
+                                  '100',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Buttons row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Tooltip(
+                              message: _gameOver
+                                  ? 'Start a new 3-round game'
+                                  : 'Generate a new hidden number for the next round',
+                              child: FilledButton(
+                                onPressed: _startOrNextRound,
+                                style: FilledButton.styleFrom(
+                                  minimumSize:
+                                      const Size.fromHeight(44),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(999),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                child: Text(
+                                  _gameOver
+                                      ? 'Play again'
+                                      : (_target == null
+                                          ? 'Start round'
+                                          : 'Round $_round'),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Tooltip(
+                              message:
+                                  'Send your current slider value as a guess for this round',
+                              child: OutlinedButton(
+                                onPressed:
+                                    _target == null ? null : _makeGuess,
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize:
+                                      const Size.fromHeight(44),
+                                  side: BorderSide(
+                                    color: _target == null
+                                        ? Colors.white24
+                                        : cs.primary,
+                                    width: 1.3,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(999),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: const Text('Guess'),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                ),
 
-                const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
-                // --- Кнопки "Start round / Play again" и "Guess" ---
-                Row(
-                  children: [
-                    Expanded(
-                      child: Tooltip(
-                        message: _gameOver
-                            ? 'Start a new 3-round game'
-                            : 'Generate a new hidden number for the next round',
-                        child: FilledButton(
-                          onPressed: _startOrNextRound,
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          child: Text(
-                            _gameOver
-                                ? 'Play again'
-                                : (_target == null
-                                    ? 'Start round'
-                                    : 'Round $_round'),
+                      // Results chips
+                      if (_results.isNotEmpty)
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _results
+                                .map(
+                                  (r) => Container(
+                                    margin:
+                                        const EdgeInsets.only(right: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.circular(999),
+                                      color: Colors.white.withOpacity(0.06),
+                                    ),
+                                    child: Text(
+                                      'R${r.round}: guess ${r.guess}, target ${r.target}, diff ${r.diff}',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Tooltip(
-                        message:
-                            'Send your current slider value as a guess for this round',
-                        child: OutlinedButton(
-                          onPressed: _target == null ? null : _makeGuess,
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                            side: BorderSide(
-                              color: _target == null
-                                  ? Colors.white24
-                                  : cs.primary,
-                              width: 1.5,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Guess'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 8),
-
-                // --- Короткое резюме по раундам ---
-                if (_results.isNotEmpty)
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _results
-                          .map(
-                            (r) => Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(999),
-                                color: Colors.white.withOpacity(0.06),
-                              ),
-                              child: Text(
-                                'R${r.round}: guess ${r.guess}, target ${r.target}, diff ${r.diff}',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
+                    ],
                   ),
-              ],
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
