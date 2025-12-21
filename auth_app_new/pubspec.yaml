@@ -1,0 +1,44 @@
+name: auth_app
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Иконки
+  cupertino_icons: ^1.0.8
+
+  # --- БАЗА ДАННЫХ ---
+  sqflite: ^2.3.0
+  path: ^1.9.0
+
+  # Хеширование паролей
+  crypto: ^3.0.3
+
+  # --- CSOUND ДЛЯ ЗВУКОВОЙ НАВИГАЦИИ ---
+  csounddart: ^0.0.14
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Если понадобятся картинки — активируешь
+  # assets:
+  #   - assets/
+
+  # Если понадобятся шрифты — добавим
+  # fonts:
+  #   - family: Example
+  #     fonts:
+  #       - asset: fonts/Example.ttf
