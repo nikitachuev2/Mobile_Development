@@ -8,11 +8,13 @@ import '../utils/accessibility.dart';
 class ProductDetailsScreen extends StatelessWidget {
   final Product product;
   final bool showCheckoutButton;
+  final int quantity;
 
   const ProductDetailsScreen({
     super.key,
     required this.product,
-    required this.showCheckoutButton,
+    this.showCheckoutButton = false,
+    this.quantity = 1,
   });
 
   Future<void> _handleAddToCart(BuildContext context) async {
@@ -23,7 +25,8 @@ class ProductDetailsScreen extends StatelessWidget {
   }
 
   Future<void> _handleCheckout(BuildContext context) async {
-    await OrderService.instance.placeOrder(product);
+    final q = quantity < 1 ? 1 : quantity;
+    await OrderService.instance.placeOrderWithQuantity(product, q);
     CartService.instance.removeProduct(product);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -35,6 +38,7 @@ class ProductDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final priceText = formatPrice(product.price);
+    final totalText = formatPrice(product.price * (quantity < 1 ? 1 : quantity));
 
     return Scaffold(
       appBar: AppBar(
@@ -69,6 +73,21 @@ class ProductDetailsScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (showCheckoutButton) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Количество: ${quantity < 1 ? 1 : quantity}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Итого за позицию: $totalText',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 const Text(
                   'Описание:',

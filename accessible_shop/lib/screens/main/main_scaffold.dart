@@ -20,9 +20,18 @@ class _MainScaffoldState extends State<MainScaffold> {
     ProfileTab(),
   ];
 
+  static const List<String> _titles = [
+    'Каталог',
+    'Корзина',
+    'Профиль',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(_titles[_currentIndex]),
+      ),
       body: SafeArea(child: _tabs[_currentIndex]),
       bottomNavigationBar: Semantics(
         label:
