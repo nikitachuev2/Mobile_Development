@@ -1,5 +1,8 @@
 class AppUser {
-  final String username;
+  final String email;
 
-  AppUser({required this.username});
+  AppUser({required this.email});
+
+  /// Для обратной совместимости со старым кодом
+  String get username => email;
 }

@@ -20,8 +20,18 @@ class AppDatabase {
 
     _db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            created_at TEXT NOT NULL
+          );
+        ''');
+
         await db.execute('''
           CREATE TABLE orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,6 +41,19 @@ class AppDatabase {
             created_at TEXT NOT NULL
           );
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              email TEXT NOT NULL UNIQUE,
+              password_hash TEXT NOT NULL,
+              salt TEXT NOT NULL,
+              created_at TEXT NOT NULL
+            );
+          ''');
+        }
       },
     );
   }

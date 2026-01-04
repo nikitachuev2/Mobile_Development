@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../main/main_scaffold.dart';
 import '../../widgets/primary_button.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,21 +14,43 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _loginController = TextEditingController();
+
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+
   bool _isSubmitting = false;
+  bool _obscurePassword = true;
+
+  String? _validateEmail(String? value) {
+    final v = (value ?? '').trim().toLowerCase();
+    if (v.isEmpty) return 'Пожалуйста, введите e-mail';
+    final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v);
+    if (!ok) return 'Введите корректный e-mail, например name@mail.com';
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final v = value ?? '';
+    if (v.trim().isEmpty) return 'Пожалуйста, введите пароль';
+    return null;
+  }
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
 
     final success = await AuthService.instance
-        .login(_loginController.text, _passwordController.text);
-
-    setState(() => _isSubmitting = false);
+        .login(_emailController.text, _passwordController.text);
 
     if (!mounted) return;
+
+    setState(() => _isSubmitting = false);
 
     if (success) {
       Navigator.pushReplacement(
@@ -36,15 +59,17 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ошибка авторизации')),
+        const SnackBar(content: Text('Ошибка авторизации: неверный e-mail или пароль')),
       );
     }
   }
 
   @override
   void dispose() {
-    _loginController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -56,8 +81,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: SafeArea(
         child: Semantics(
-          label:
-              'Экран авторизации. Введите логин и пароль, затем нажмите кнопку Войти.',
+          container: true,
+          label: 'Экран авторизации',
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Form(
@@ -66,38 +91,54 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Text(
                     'Вход в аккаунт',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 24),
-                  TextFormField(
-                    controller: _loginController,
-                    decoration: const InputDecoration(
-                      labelText: 'Логин',
-                      hintText: 'Введите логин',
+                  AutofillGroup(
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _emailController,
+                          focusNode: _emailFocus,
+                          keyboardType: TextInputType.emailAddress,
+                          autofillHints: const [AutofillHints.email],
+                          decoration: const InputDecoration(
+                            labelText: 'E-mail',
+                            hintText: 'Введите e-mail',
+                          ),
+                          textInputAction: TextInputAction.next,
+                          validator: _validateEmail,
+                          onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _passwordController,
+                          focusNode: _passwordFocus,
+                          autofillHints: const [AutofillHints.password],
+                          decoration: InputDecoration(
+                            labelText: 'Пароль',
+                            hintText: 'Введите пароль',
+                            suffixIcon: IconButton(
+                              tooltip: _obscurePassword
+                                  ? 'Показать пароль'
+                                  : 'Скрыть пароль',
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                            ),
+                          ),
+                          obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.done,
+                          validator: _validatePassword,
+                          onFieldSubmitted: (_) => _submit(),
+                        ),
+                      ],
                     ),
-                    textInputAction: TextInputAction.next,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Пожалуйста, введите логин';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(
-                      labelText: 'Пароль',
-                      hintText: 'Введите пароль',
-                    ),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Пожалуйста, введите пароль';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 24),
                   if (_isSubmitting)
@@ -107,6 +148,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: 'Войти',
                       onPressed: _submit,
                     ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                      );
+                    },
+                    child: const Text('Нет аккаунта? Зарегистрироваться'),
+                  ),
                 ],
               ),
             ),
