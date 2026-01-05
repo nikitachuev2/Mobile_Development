@@ -62,13 +62,13 @@ class ProductService {
 
   List<String> getCategories() {
     final set = _products.map((p) => p.category).toSet();
-    final list = set.toList();
-    list.sort();
+    final list = set.toList()..sort();
     return list;
   }
 
   List<Product> getProductsByCategory(String category) {
-    return _products.where((p) => p.category == category).toList();
+    // Возвращаем копию, чтобы внешний код не мог мутировать внутренний список.
+    return _products.where((p) => p.category == category).toList(growable: false);
   }
 
   List<Product> get allProducts => List.unmodifiable(_products);
@@ -79,5 +79,60 @@ class ProductService {
     } catch (_) {
       return null;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // ДОБАВЛЕНО: Поиск товаров (не ломает существующий код)
+  // ---------------------------------------------------------------------------
+
+  /// Возвращает результаты поиска по товарам.
+  ///
+  /// Ищем по: name + description + category.
+  /// - регистр не важен
+  /// - множественные пробелы игнорируются
+  /// - запрос может быть из нескольких слов: все слова должны встречаться (AND)
+  ///
+  /// Если query пустой/из пробелов — возвращает пустой список.
+  List<Product> searchProducts(String query) {
+    final normalizedQuery = _normalize(query);
+    if (normalizedQuery.isEmpty) return const <Product>[];
+
+    final tokens = normalizedQuery.split(' ').where((t) => t.isNotEmpty).toList(growable: false);
+    if (tokens.isEmpty) return const <Product>[];
+
+    bool matches(Product p) {
+      final haystack = _normalize('${p.name} ${p.description} ${p.category}');
+      // AND: каждый токен должен встречаться
+      return tokens.every(haystack.contains);
+    }
+
+    final results = _products.where(matches).toList(growable: false);
+    if (results.isEmpty) return const <Product>[];
+
+    // Сортировка по релевантности (простая и стабильная):
+    // 1) name содержит полный запрос
+    // 2) description содержит полный запрос
+    // 3) затем по алфавиту name
+    int score(Product p) {
+      final name = _normalize(p.name);
+      final desc = _normalize(p.description);
+      if (name.contains(normalizedQuery)) return 0;
+      if (desc.contains(normalizedQuery)) return 1;
+      return 2;
+    }
+
+    final sorted = results.toList(growable: true);
+    sorted.sort((a, b) {
+      final sa = score(a);
+      final sb = score(b);
+      if (sa != sb) return sa.compareTo(sb);
+      return a.name.compareTo(b.name);
+    });
+
+    return List.unmodifiable(sorted);
+  }
+
+  String _normalize(String s) {
+    return s.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
   }
 }
